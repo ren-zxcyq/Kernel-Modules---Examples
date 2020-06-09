@@ -1,0 +1,90 @@
+User Space vs Kernel Space
+----------
+- kernel is all about access to resources
+- hard drive, a video card or memory
+- programs often compete for the same resource.
+	- updatedb updates the locate database on document save
+- vim session & updatedb are both using the hard drive concurrently.
+	- kernel needs to account for that and not give users access to resources whenever
+		they feel like it
+
+CPU Different Modes
+
+	-	Intel 80386	4 Rings - Modes
+	-	Unix		2 Rings
+
+
+	Ring 0		-	SUPERVISOR mode
+							everything is allowed to happen
+	Lowest Ring	-	USER mode
+
+
+	Lib Functions vs System calls.
+	Typically use a lib function in user mode
+
+	The lib function calls one or more system calls, and these system calls execute
+	on the lib function's behalf, but do so in supervisor mode since they are part
+	of the kernel itself.
+
+	Once the system call completes its tasks, it returns and execution gets transferred
+	back to user mode.
+
+
+Name Space
+----------
+- variable names clash
+- namespace pollution
+
+KERNEL code ->	Even the smallest module will be linked against the entire kernel, so this
+		is definately an issue.
+
+		Best way to approach this:
+		Declare all vars as static
+		well-defined prefix			(all Kernel prefixes are lowercase)
+
+
+		if we don't declare everything as static, another option is to
+		declare a symbol table
+		& register it with a kernel
+
+
+=>
+/proc/kallsyms		holds all the symbols the kernel knows about
+
+			& are therefore accessible to your modules since they share the
+				kernel's codespace
+
+
+Code Space
+----------
+- POINTERS don't actually point at MEMORY LOCATIONS
+- NOT REAL ONES
+
+- On process creation:
+	kernel sets aside a portion of real physical memory
+	hands it to the process -> code, vars, stack, heap etc
+
+	This memory begins with [0x00000000,..]
+	MEMORY SPACE for any 2 processes doesn't overlap
+			Every process that can access a mem addr like 0xbffff978
+			would be accessing a different location in real physical mem.
+			
+			THE PROCESS accesses an index named 0xbffff978 which
+			points to some kind of offset into the region of memory set aside
+			for that particular process
+
+- processes CANT access the space of another process, althought there are ways.
+- Kernel has its own space of memory.
+	since
+		a module can be dynamically inserted and removed,
+		it shares the kernel's codespace
+
+	=>	If MODULE segfaults, kernel segfaults.
+
+		If writing data over because of an off-by-one error, kernel data or code
+						are being overwritten.
+
+	(Above holds true for monolithic kernels)
+	(microKernels have modules which get their own codespace ->
+				GNU Hurd
+				Magenta Kernel of Google Fuchsia

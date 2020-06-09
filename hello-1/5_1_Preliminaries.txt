@@ -1,0 +1,91 @@
+A program usually begins with a main()
+executes a bunch of instructions & terminates upon completion of those instructions.
+
+Kernel modules work a bit differently.
+-------------
+
+	A MODULE:
+
+	- ALWAYS begins with either:	init_module
+					function specified with module_init()
+
+			this is the entry
+						- tells the kernel what functionality
+							the module provides
+						- sets up the kernel to run the functions
+							when needed
+						- once it does this, entry function returns
+							and the module does nothing UNTIL
+							the kernel wants to do something with
+							the code that the module provides
+	- all modules end by either:	cleanup_module
+					function specified with module_exit()
+
+			this is the exitr func
+						- undoes w/e entry function did
+						- unregisters the functionality that the
+							entry function registered
+
+module_init()	->	today
+module_exit()	->	today
+
+
+
+
+Functions available to modules
+-------------
+
+- We use functions we don't define all the time	->	printf
+- These library functions are provided by the standard C library, libc.
+- The definitions of these functions don't actually enter the program until the linking stage
+- linking stage
+	- insures that the code (for printf() for example) is available
+	- fixes the call instruction to point to that code
+
+- Kernel Modules are DIFFERENT here TOO:
+	- pr_info() - We used a function but we didn't include a standard I/O library.
+	- That's because modules are		OBJECT FILES
+		whose symbols get resolved upon		insmod'ing
+	- Definition of the symbols comes from the Kernel itself.
+
+	=> The ONLY External functions we can use are the ones provided by the kernel.
+
+	/proc/kallsyms			=>	List of the symbols exported by the kernel
+
+
+		root@deb:/proc# head -10 /proc/kallsyms
+		0000000000000000 A irq_stack_union
+		0000000000000000 A __per_cpu_start
+		0000000000004000 A cpu_debug_store
+		0000000000005000 A cpu_tss_rw
+		0000000000008000 A gdt_page
+		0000000000009000 A exception_stacks
+		000000000000e000 A entry_stack_storage
+		000000000000f000 A espfix_waddr
+		000000000000f008 A espfix_stack
+		000000000000f010 A cpu_llc_id
+
+
+Difference between	lib functions - System Calls
+------------
+	Lib Functions:
+		lib funcs are higher level
+		run completely in user space
+		provide a more convenient interface
+	System Calls:
+		run in kernel mode
+		provided by the kernel itself
+
+
+	printf() may look like a very general printing func but all it really does is
+		format the data & write the string data using the low-level
+		system call write()	->	sends the data to standard output.
+
+
+Let's compile the simple program 5_1_simple_system_call.c
+
+using:	gcc -Wall -o outputfile dotcfile.c
+
+
+
+(and continue there)

@@ -6,3 +6,87 @@ depends:
 retpoline:      Y
 name:           startstop
 vermagic:       4.19.0-9-amd64 SMP mod_unload modversions
+
+
+
+Build configuration can be found in .config	below:
+
+under:		/boot/config-`uname -r` ...
+		&
+		/lib/modules/`uname -r`/build/.config
+
+root@deb:/boot# ls -la
+total 43948
+drwxr-xr-x  3 root root     4096 Jun  9 01:10 .
+drwxr-xr-x 19 root root     4096 Jun  9 01:09 ..
+-rw-r--r--  1 root root   206157 Apr 29 10:38 config-4.19.0-9-amd64
+drwxr-xr-x  5 root root     4096 Jun  9 01:10 grub
+-rw-r--r--  1 root root 36089722 Jun  9 01:10 initrd.img-4.19.0-9-amd64
+-rw-r--r--  1 root root  3411358 Apr 29 10:38 System.map-4.19.0-9-amd64
+-rw-r--r--  1 root root  5278960 Apr 29 10:38 vmlinuz-4.19.0-9-amd64
+
+
+root@deb:/lib/modules/4.19.0-9-amd64/build# ls -la
+total 1552
+drwxr-xr-x 4 root root    4096 Jun  9 05:36 .
+drwxr-xr-x 4 root root    4096 Jun  9 02:53 ..
+drwxr-xr-x 3 root root    4096 Jun  9 02:53 arch
+-rw-r--r-- 1 root root  206157 Apr 29 10:38 .config
+drwxr-xr-x 4 root root    4096 Jun  9 02:53 include
+-rw-r--r-- 1 root root     243 Apr 29 10:38 .kernelvariables
+-rw-r--r-- 1 root root     306 Apr 29 10:38 Makefile
+-rw-r--r-- 1 root root 1354018 Apr 29 10:38 Module.symvers
+lrwxrwxrwx 1 root root      35 Apr 29 10:38 scripts -> ../../lib/linux-kbuild-4.19/scripts
+lrwxrwxrwx 1 root root      33 Apr 29 10:38 tools -> ../../lib/linux-kbuild-4.19/tools
+
+
+To check if they are identical i copied both and then used
+
+	cmp file1 file2
+	diff file1 file2
+
+
+They are IDENTICAL
+
+
+
+
+
+
+Makefile
+	kbuild	in:
+		according to:	https://www.kernel.org/doc/html/latest/kbuild/makefiles.html
+
+	They follow a nested structure just like the following:
+		Makefile                the top Makefile.
+		.config                 the kernel configuration file.
+		arch/$(ARCH)/Makefile   the arch Makefile.
+		scripts/Makefile.*      common rules etc. for all kbuild Makefiles.
+		kbuild Makefiles        there are about 500 of these.
+
+
+The book here states:
+"
+In this case, you need to restore the value of symbol EXTRAVERSION to -1.358. We suggest to keep a backup copy of the makefile used to compile your kernel available in /lib/modules/5.6.7-1.358/build. A simple cp /lib/modules/`uname-r`/build/Makefile /usr/src/linux-`uname -r` should suffice. Additionally, if you already started a kernel build with the previous (wrong) Makefile, you should also rerun make, or directly modify symbol UTS_RELEASE in file /usr/src/linux-5.6.7/include/linux/version.h according to contents of file /lib/modules/5.6.7/build/include/linux/version.h, or overwrite the latter with the first.
+
+Now, please run make to update configuration and version headers and objects:
+
+::: {.org-src-container}
+
+# make
+CHK     include/linux/version.h
+UPD     include/linux/version.h
+SYMLINK include/asm -> include/asm-i386
+SPLIT   include/linux/autoconf.h -> include/config/*
+HOSTCC  scripts/basic/fixdep
+HOSTCC  scripts/basic/split-include
+HOSTCC  scripts/basic/docproc
+HOSTCC  scripts/conmakehash
+HOSTCC  scripts/kallsyms
+CC      scripts/empty.o
+
+:::
+
+If you do not desire to actually compile the kernel, you can interrupt the build process (CTRL-C) just after the SPLIT line, because at that time, the files you need will be are ready. Now you can turn back to the directory of your module and compile it: It will be built exactly according your current kernel settings, and it will load into it without any errors. ::: :::"
+
+However, i did not follow through with it, since it was compiled using kbuild
