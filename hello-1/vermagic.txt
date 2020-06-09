@@ -1,0 +1,8 @@
+root@deb:/home/debby/develop/kernel/hello-1# modinfo startstop.ko
+filename:       /home/debby/develop/kernel/hello-1/startstop.ko
+license:        GPL
+license:        GPL
+depends:
+retpoline:      Y
+name:           startstop
+vermagic:       4.19.0-9-amd64 SMP mod_unload modversions
