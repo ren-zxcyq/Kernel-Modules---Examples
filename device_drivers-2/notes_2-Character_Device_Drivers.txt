@@ -1,0 +1,150 @@
+proc_ops	structure
+----------------
+
+
+	defined in:	/usr/include/linus/fs.h
+
+	holds pointers to functions defined by the driver that perform various ops
+	on the device
+
+	- EACH FIELD of the structure corresponds to the address of some function
+		defined by the driver to handle a requested operation
+
+
+every character driver needs to define a function that reads from the device. The proc_ops structure holds the address of the module\'s function that performs that operation. Here is what the definition looks like for kernel 3.0:
+
+::: {.org-src-container}
+
+struct proc_ops {
+    struct module *owner;
+    loff_t (*llseek) (struct file *, loff_t, int);
+    ssize_t (*read) (struct file *, char __user *, size_t, loff_t *);
+    ssize_t (*write) (struct file *, const char __user *, size_t, loff_t *);
+    ssize_t (*aio_read) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
+    ssize_t (*aio_write) (struct kiocb *, const struct iovec *, unsigned long, loff_t);
+    int (*iterate) (struct file *, struct dir_context *);
+    unsigned int (*poll) (struct file *, struct poll_table_struct *);
+    long (*unlocked_ioctl) (struct file *, unsigned int, unsigned long);
+    long (*compat_ioctl) (struct file *, unsigned int, unsigned long);
+    int (*mmap) (struct file *, struct vm_area_struct *);
+    int (*open) (struct inode *, struct file *);
+    int (*flush) (struct file *, fl_owner_t id);
+    int (*release) (struct inode *, struct file *);
+    int (*fsync) (struct file *, loff_t, loff_t, int datasync);
+    int (*aio_fsync) (struct kiocb *, int datasync);
+    int (*fasync) (int, struct file *, int);
+    int (*lock) (struct file *, int, struct file_lock *);
+    ssize_t (*sendpage) (struct file *, struct page *, int, size_t, loff_t *, int);
+    unsigned long (*get_unmapped_area)(struct file *, unsigned long, unsigned long, unsigned long, unsigned long);
+    int (*check_flags)(int);
+    int (*flock) (struct file *, int, struct file_lock *);
+    ssize_t (*splice_write)(struct pipe_inode_info *, struct file *, loff_t *, size_t, unsigned int);
+    ssize_t (*splice_read)(struct file *, loff_t *, struct pipe_inode_info *, size_t, unsigned int);
+    int (*setlease)(struct file *, long, struct file_lock **);
+    long (*fallocate)(struct file *file, int mode, loff_t offset,
+          loff_t len);
+    int (*show_fdinfo)(struct seq_file *m, struct file *f);
+};
+
+Some operations are not implemented by a driver. For example, a driver that handles a video card won\'t need to read from a directory structure. The corresponding entries in the proc_ops structure should be set to NULL.
+
+	An instance of struct proc_ops containing pointers to functions that are
+	used to implement read, write, open, ... syscalls is commonly named fops.
+
+
+	Modern drivers assign to this struct like:
+	struct proc_ops fops = {
+		proc_read: device_read,
+		proc_write: device_write,
+		proc_open: device_open,
+		proc_release: device_release
+	};
+
+	C99 Syntax:
+	struct proc_ops fops = {
+		.proc_read = device_read,
+		.proc_write = device_write,
+		.proc_open = device_open,
+		.proc_release = device_release
+	};
+
+
+
+	- any functions which are not explicitly assigned are set to NULL by gcc
+
+
+* AN INSTANCE OF STRUCT proc_ops CONTAINING POINTERS TO FUNCTIONS THAT ARE USED TO IMPLEMENT READ WRITE OPEN
+	SYSCALLS
+
+			is named:	fops
+
+
+
+* I could not find that structure within my linux/fs.h file.
+
+
+
+
+
+
+
+
+
+
+
+
+
+--
+
+
+
+
+
+The File structure
+--------------
+
+- Each device is represented in the kernel by a file structure, which is defined in linux/fs.h
+
+
+- A file is a kernel level structure and never appears in a user space program
+
+	NOT THE SAME THING AS A FILE
+					FILE -> defined in glibc
+						would never appear in a kernel space function
+						name is misleading - it represents an abstract open `file`
+							not a file on disk.
+							a file on disk is represented by a structure: inode
+
+- An instance of struct file is named filp
+	or as struct file file.
+
+- Drivers don't fill file directly, so most of the entries within the definition of file aren't useed by dev drivers
+
+
+
+
+
+
+Registering a Device
+--------------
+
+- production drivers are located in /dev
+
+- char devices are accessed through device files
+
+
+
+- Adding a driver to the system		=	registering it with the kernel
+
+
+							i.e., Assigning a MAJOR Number
+
+
+									- during the module's initialization
+
+
+	=>		register_chrdev()	in linux/fs.h
+
+
+
+For an example and further explanation check:	chardev-3.c

@@ -1,0 +1,133 @@
+One class of module is the device driver -> functionality for hardware like a serial port.
+
+Each piece of hw is represented by a file in /dev
+named a device file which provides the means to communicate with the hw.
+
+i.e., communicates on behalf of a user program.
+
+	->	es1370.o sound card device driver -> connects the /dev/sound
+				to the sound card
+
+				this way an mp3 program can connect to the sound card
+					via			/dev/sound
+
+- 	MAJOR
+	MINOR		NUMBERS		(column separated by a comma)
+
+
+		debby@deb:~$ ls -l /dev/sda[1-4]
+		\brw-rw---- 1 root disk 8, 1 Jun  9 05:35 /dev/sda1
+		brw-rw---- 1 root disk 8, 2 Jun  9 05:35 /dev/sda2
+
+
+
+		here:	MAJOR -> 8
+			MINOR -> 1 & 2
+
+
+	All device files with the same major number are controlled by the same driver.
+		here:	2 devices controlled by the same driver
+
+
+-	2 types of devs
+
+				BLOCK
+				CHARACTER
+
+- BLOCK
+	devices
+
+
+
+	- buffer for requests so they can choose the best order in which to respond
+
+	- storage devices where its faster to read/write sectors close to each other
+
+	- I/O in BLOCKS
+		BLOCK devices can only accept input & return output in blocks
+
+
+- CHARACTER
+	devices
+
+	- allowed to use as many or as few bytes as they like.
+
+	- most device in the real world are character devices
+
+		they don't need this type of buffering
+		they don't operate with a fixed block size
+
+
+
+
+
+We can tell if it is		BLOCK/CHARACTER		via:
+
+
+	b''
+
+	c''
+
+
+	ls -la /dev
+	-----------
+	brw-rw----   1 root disk      8,   0 Jun  9 05:35 sda
+	brw-rw----   1 root disk      8,   1 Jun  9 05:35 sda1
+	brw-rw----   1 root disk      8,   2 Jun  9 05:35 sda2
+	brw-rw----   1 root disk      8,   5 Jun  9 05:35 sda5
+	crw-rw----+  1 root cdrom    21,   0 Jun  9 05:35 sg0
+	crw-rw----   1 root disk     21,   1 Jun  9 05:35 sg1
+	drwxrwxrwt   2 root root          40 Jun  9 05:35 shm
+
+
+
+
+
+	ttyS0
+	ttyS1
+	ttyS2
+	ttyS3			-> SERIAL PORTS
+
+
+
+
+
+
+- devices in /dev are created by		mknod
+
+	i.e., Create a new char device "coffe" with major/minor numbers 12 and 2.
+
+	mknod /dev/coffe c 12 2
+
+
+
+	We don't have to put the device files in /dev but its a convention
+
+
+
+- When a device file is accessed, the kernel uses the MAJOR number of the file
+	to determine which driver should be used to handle the access.
+
+	-> KERNEL does not need to know anything about minor number
+		DRIVER distinguishes between devices using the MINOR number.
+
+
+- HW in this context means something a bit more abstract than PCI cards
+
+% ls -l /dev/sda /dev/sdb
+brw-rw---- 1 root disk 8,  0 Jan  3 09:02 /dev/sda
+brw-rw---- 1 root disk 8, 16 Jan  3 09:02 /dev/sdb
+
+
+
+
+	* the above was taken from the book -> at the time of this writing there was only sda on my machine
+
+
+
+	- the above tells us that these are block devices
+	- block major 8
+
+
+- SAME MAJOR DIFF MINOR Might also be the same HW device
+

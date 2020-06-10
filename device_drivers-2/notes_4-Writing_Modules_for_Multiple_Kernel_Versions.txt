@@ -1,0 +1,14 @@
+System calls - generally stay the same across versions. A new system call might be added, but due to backwards
+		compatibility, the old ones behave exactly the same like they used to.
+
+Internal interfaces within the kernel are changed instead.
+
+Linux Kernel Versions are divided between stable	-	even number
+					  unstable	-	odd number
+
+	LINUX_VERSION_CODE
+	KERNEL_VERSION
+
+	conditional compilation settings
+
+	LKMPG
